@@ -24,12 +24,24 @@ header {
 }
 
 #puzzle-section {
-    flex: 3; /* 拼圖區佔較大空間 */
+    width: 600px; /* JS可修改的預設寬度 */
+    transition: width 0.3s ease-in-out;
 }
 
 #controls-section {
     flex: 1; /* 控制區佔較小空間 */
     min-width: 280px;
+}
+
+#board-size-selector p {
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+#board-size-selector button.selected {
+    background-color: #28a745;
+    color: white;
+    border-color: #28a745;
 }
 
 #controls {
@@ -86,6 +98,11 @@ header {
 .puzzle-cell {
     border: 1px solid rgba(0, 0, 0, 0.1);
     z-index: 1;
+}
+
+.target-highlight {
+    box-shadow: inset 0 0 8px 2px #33ff33; /* 綠色提示光暈 */
+    background-color: rgba(51, 255, 51, 0.1);
 }
 
 .placed-piece {
@@ -152,5 +169,6 @@ header {
     }
     #controls-section {
         width: 100%;
+        order: -1; /* 在 flex column 佈局中，將控制區塊的順序提前 */
     }
 }
