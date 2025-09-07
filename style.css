@@ -59,11 +59,12 @@ header {
 #right-panel {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
+    width: 320px; /* 給予右側面板固定寬度以穩定佈局 */
 }
 
 #reference-image-container img {
-    max-width: 300px;
+    max-width: 100%;
     height: auto;
     border: 1px solid #ddd;
 }
@@ -77,7 +78,9 @@ header {
     background-color: #fff;
     border: 1px solid #ddd;
     border-radius: 8px;
-    min-height: 150px;
+    max-height: 450px; /* 限定最大高度 */
+    overflow-y: auto;  /* 超出高度時顯示滾動條 */
+    align-content: flex-start;
 }
 
 .puzzle-piece {
