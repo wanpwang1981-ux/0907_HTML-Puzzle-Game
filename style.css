@@ -10,15 +10,26 @@ body {
 }
 
 header {
-    margin-bottom: 20px;
+    text-align: center;
+    width: 100%;
 }
 
-#game-wrapper {
+/* 新的兩欄式佈局 */
+#game-area {
     display: flex;
-    flex-direction: column;
     gap: 20px;
     width: 100%;
-    max-width: 800px; /* 為單欄佈局調整寬度 */
+    max-width: 1200px;
+    margin-top: 20px;
+}
+
+#puzzle-section {
+    flex: 3; /* 拼圖區佔較大空間 */
+}
+
+#controls-section {
+    flex: 1; /* 控制區佔較小空間 */
+    min-width: 280px;
 }
 
 #controls {
@@ -26,18 +37,21 @@ header {
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    display: flex;
-    gap: 20px;
-    align-items: center;
-    flex-wrap: wrap;
 }
 
-#difficulty-selector button {
+#controls > p {
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+}
+
+#difficulty-selector button, #controls button {
+    margin-top: 5px;
     margin-right: 10px;
-    padding: 5px 10px;
+    padding: 8px 12px;
     border: 1px solid #ccc;
     background-color: #eee;
     cursor: pointer;
+    border-radius: 4px;
 }
 
 #difficulty-selector button.selected {
@@ -46,70 +60,62 @@ header {
     border-color: #007bff;
 }
 
-/* 新的拼圖板樣式 */
+/* 拼圖板樣式 */
 #puzzle-board {
-    position: relative; /* 用於定位拼圖塊和背景 */
+    position: relative;
     display: grid;
     border: 2px solid #333;
     width: 100%;
     background-color: #fff;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
     cursor: pointer;
 }
 
 #puzzle-board::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background-image: var(--bg-image);
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    opacity: 0.2; /* 淡化背景 */
-    filter: grayscale(100%); /* 灰階效果 */
+    opacity: 0.2;
+    filter: grayscale(100%);
     z-index: 0;
 }
 
 .puzzle-cell {
     border: 1px solid rgba(0, 0, 0, 0.1);
-    z-index: 1; /* 確保格子在背景之上 */
+    z-index: 1;
 }
 
 .placed-piece {
     width: 100%;
     height: 100%;
     display: block;
-}
-
-/* 跟隨游標的拼圖塊 */
-.held-piece {
-    position: absolute;
-    pointer-events: none; /* 讓它不干擾板塊的點擊事件 */
-    z-index: 1000;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    transform: translate(-50%, -50%); /* 讓游標在拼圖塊中心 */
-    opacity: 0.7; /* 半透明以看清底下圖案 */
     border: 1px solid #000;
 }
 
+.held-piece {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1000;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    transform: translate(-50%, -50%);
+    opacity: 0.7;
+    border: 1px solid #000;
+}
 
-/* 彈出視窗 */
+/* 彈出視窗通用樣式 */
 .modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
+    top: 0; left: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.6);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
+    z-index: 2000;
 }
 
 .modal-content {
@@ -122,4 +128,29 @@ header {
 
 .hidden {
     display: none;
+}
+
+/* 相機彈出視窗特定樣式 */
+#video-feed {
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+    background-color: #000;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+#camera-modal .modal-content button {
+    margin: 0 10px;
+    padding: 10px 20px;
+}
+
+/* 響應式設計 */
+@media (max-width: 800px) {
+    #game-area {
+        flex-direction: column;
+    }
+    #controls-section {
+        width: 100%;
+    }
 }

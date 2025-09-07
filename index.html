@@ -12,24 +12,38 @@
         <h1>HTML 拼圖遊戲</h1>
     </header>
 
-    <main id="game-wrapper">
-        <div id="controls">
-            <p>選擇一張圖片開始遊戲：</p>
-            <input type="file" id="image-loader" accept="image/*">
-            <p>選擇難度：</p>
-            <div id="difficulty-selector">
-                <!-- Difficulty options will be populated by JS -->
+    <div id="game-area">
+        <main id="puzzle-section">
+            <div id="puzzle-board">
+                <!-- Grid cells and held piece will be populated by JS -->
             </div>
-            <div id="status-area">
-                <p>計時：<span id="timer">00:00</span></p>
+        </main>
+
+        <aside id="controls-section">
+            <div id="controls">
+                <p>選擇一張圖片開始遊戲：</p>
+                <input type="file" id="image-loader" accept="image/*">
+                <button id="camera-btn">使用相機</button>
+                <p>選擇難度：</p>
+                <div id="difficulty-selector"></div>
+                <div id="status-area">
+                    <p>計時：<span id="timer">00:00</span></p>
+                </div>
             </div>
-        </div>
+        </aside>
+    </div>
 
-        <div id="puzzle-board">
-            <!-- Grid cells and held piece will be populated by JS -->
+    <!-- Camera Modal -->
+    <div id="camera-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2>相機預覽</h2>
+            <video id="video-feed" autoplay playsinline></video>
+            <button id="capture-btn">拍照</button>
+            <button id="cancel-camera-btn">取消</button>
         </div>
-    </main>
+    </div>
 
+    <!-- Win Modal -->
     <div id="win-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <h2>恭喜你！</h2>
