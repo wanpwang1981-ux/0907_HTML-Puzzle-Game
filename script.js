@@ -100,6 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const cell = document.createElement('div');
             cell.classList.add('puzzle-cell');
             cell.dataset.index = i;
+            cell.addEventListener('mouseover', () => handleCellHover(i));
             puzzleBoard.appendChild(cell);
         }
 
@@ -122,30 +123,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (unplacedPieces.length === 0 && !heldPieceData) return; // 遊戲已勝利
 
         if (heldPieceData) {
-            // 如果手上正拿著一塊，嘗試放置它
-            const rect = puzzleBoard.getBoundingClientRect();
-            // 確保點擊事件在拼圖板內
-            if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
-                // 點擊在板外，視為交換
-                swapPiece(rows, cols);
-                return;
-            }
-
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
-            const gridCol = Math.floor(x / (rect.width / cols));
-            const gridRow = Math.floor(y / (rect.height / rows));
-            const clickedIndex = gridRow * cols + gridCol;
-
-            if (clickedIndex === heldPieceData.index) {
-                placePiece(clickedIndex);
-            } else {
-                swapPiece(rows, cols);
-            }
+            // 如果手上有拼圖，點擊任何地方都是交換
+            swapPiece(rows, cols);
         } else {
             // 如果手上沒東西，就拿一塊
             pickupPiece(rows, cols);
+        }
+    }
+
+    function handleCellHover(index) {
+        // 如果正拿著拼圖，且滑鼠移到了正確的格子上
+        if (heldPieceData && heldPieceData.index === index) {
+            placePiece(index);
         }
     }
 
