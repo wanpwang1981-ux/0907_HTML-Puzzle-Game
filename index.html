@@ -16,31 +16,17 @@
         <div id="controls">
             <p>選擇一張圖片開始遊戲：</p>
             <input type="file" id="image-loader" accept="image/*">
-            <!-- Camera input can be triggered by the same file input on mobile -->
             <p>選擇難度：</p>
             <div id="difficulty-selector">
                 <!-- Difficulty options will be populated by JS -->
             </div>
-        </div>
-
-        <div id="game-container">
-            <div id="puzzle-board">
-                <!-- Grid cells will be populated by JS -->
-            </div>
-            <div id="right-panel">
-                <div id="status-area">
-                    <p>計時：<span id="timer">00:00</span></p>
-                </div>
-                <div id="reference-image-container">
-                    <p>參考圖：</p>
-                    <img id="reference-image" src="" alt="Reference Image">
-                </div>
+            <div id="status-area">
+                <p>計時：<span id="timer">00:00</span></p>
             </div>
         </div>
 
-        <div id="pieces-container">
-            <h2>拼圖塊</h2>
-            <!-- Puzzle pieces will be populated by JS -->
+        <div id="puzzle-board">
+            <!-- Grid cells and held piece will be populated by JS -->
         </div>
     </main>
 

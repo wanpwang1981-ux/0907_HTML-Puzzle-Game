@@ -1,24 +1,25 @@
 document.addEventListener('DOMContentLoaded', () => {
     // DOM 元素
     const imageLoader = document.getElementById('image-loader');
-    const referenceImageContainer = document.getElementById('reference-image-container');
-    const referenceImage = document.getElementById('reference-image');
     const difficultySelector = document.getElementById('difficulty-selector');
     const puzzleBoard = document.getElementById('puzzle-board');
-    const piecesContainer = document.getElementById('pieces-container');
     const timerDisplay = document.getElementById('timer');
     const winModal = document.getElementById('win-modal');
     const finalTimeDisplay = document.getElementById('final-time');
     const newGameBtn = document.getElementById('new-game-btn');
     const exitBtn = document.getElementById('exit-btn');
 
+    // --- 新的遊戲狀態變數 ---
     let sourceImage;
     let timerInterval;
     let startTime;
+    let unplacedPieces = [];
+    let heldPieceData = null; // 儲存當前手上拿著的拼圖塊的資訊
+    let heldPieceElement = null; // 儲存跟隨滑鼠的 DOM 元素
+    // -------------------------
 
-    // 監聽圖片上傳
+    // 監聽器
     imageLoader.addEventListener('change', handleImageUpload);
-    // 監聽彈出視窗按鈕
     newGameBtn.addEventListener('click', () => location.reload());
     exitBtn.addEventListener('click', () => winModal.classList.add('hidden'));
 
@@ -33,8 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.onload = (event) => {
             sourceImage = new Image();
             sourceImage.onload = () => {
-                referenceImage.src = sourceImage.src;
-                referenceImageContainer.style.display = 'block';
                 resetGame();
                 proposeDifficulties(sourceImage.width, sourceImage.height);
             };
@@ -70,49 +69,147 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function resetGame() {
         puzzleBoard.innerHTML = '';
-        piecesContainer.innerHTML = '';
-        difficultySelector.innerHTML = '';
+        puzzleBoard.style.removeProperty('--bg-image'); // 清除舊的底圖
+        // difficultySelector.innerHTML = ''; // 不應重設，以便重新開始遊戲
         timerDisplay.textContent = '00:00';
-        clearInterval(timerInterval);
+        unplacedPieces = [];
+        if (heldPieceElement) {
+            heldPieceElement.remove();
+            heldPieceElement = null;
+        }
+        heldPieceData = null;
+        if(timerInterval) clearInterval(timerInterval);
     }
 
     function startGame(rows, cols) {
-        resetGame(); // 確保計時器等被重置
-        proposeDifficulties(sourceImage.width, sourceImage.height); // 重新顯示難度按鈕
-        // 標示選中的難度
-        document.querySelectorAll('#difficulty-selector button').forEach(btn => {
-            if (btn.textContent.includes(`${cols}x${rows}`) || btn.textContent.includes(`${rows}x${cols}`)) {
-                btn.classList.add('selected');
-            }
-        });
+        resetGame();
+        console.log(`新遊戲開始，難度: ${rows}x${cols}`);
 
-        puzzleBoard.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-        puzzleBoard.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+        // 1. 設置淡化背景
+        puzzleBoard.style.setProperty('--bg-image', `url(${sourceImage.src})`);
+
+        // 2. 根據圖片比例調整拼圖板尺寸
         const boardAspectRatio = sourceImage.width / sourceImage.height;
         puzzleBoard.style.height = `${puzzleBoard.clientWidth / boardAspectRatio}px`;
+
+        // 3. 創建網格儲存格
+        puzzleBoard.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+        puzzleBoard.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
         for (let i = 0; i < rows * cols; i++) {
             const cell = document.createElement('div');
             cell.classList.add('puzzle-cell');
             cell.dataset.index = i;
-            cell.addEventListener('dragover', e => e.preventDefault());
-            cell.addEventListener('drop', e => handleDrop(e, rows, cols));
+            cell.addEventListener('mouseover', () => handleCellHover(i));
             puzzleBoard.appendChild(cell);
         }
 
+        // 4. 創建拼圖塊到 unplacedPieces 陣列
         createPuzzlePieces(rows, cols);
 
-        // 開始計時
+        // 5. 添加點擊事件監聽
+        puzzleBoard.addEventListener('click', (e) => handleBoardClick(e, rows, cols));
+        document.addEventListener('mousemove', moveHeldPiece);
+        document.addEventListener('touchmove', moveHeldPiece);
+
+        // 6. 開始計時
         startTime = Date.now();
         timerInterval = setInterval(() => {
             timerDisplay.textContent = formatTime(Math.floor((Date.now() - startTime) / 1000));
         }, 1000);
     }
 
+    function handleBoardClick(e, rows, cols) {
+        if (unplacedPieces.length === 0 && !heldPieceData) return; // 遊戲已勝利
+
+        if (heldPieceData) {
+            // 如果手上有拼圖，點擊任何地方都是交換
+            swapPiece(rows, cols);
+        } else {
+            // 如果手上沒東西，就拿一塊
+            pickupPiece(rows, cols);
+        }
+    }
+
+    function handleCellHover(index) {
+        // 如果正拿著拼圖，且滑鼠移到了正確的格子上
+        if (heldPieceData && heldPieceData.index === index) {
+            placePiece(index);
+        }
+    }
+
+    function pickupPiece(rows, cols) {
+        if (unplacedPieces.length === 0) return;
+        heldPieceData = unplacedPieces.pop();
+
+        heldPieceElement = new Image();
+        heldPieceElement.src = heldPieceData.imgSrc;
+        heldPieceElement.classList.add('held-piece');
+        heldPieceElement.style.width = `${puzzleBoard.clientWidth / cols}px`;
+        heldPieceElement.style.height = `${puzzleBoard.clientHeight / rows}px`;
+
+        document.body.appendChild(heldPieceElement);
+    }
+
+    function swapPiece(rows, cols) {
+        unplacedPieces.unshift(heldPieceData);
+        if(heldPieceElement) heldPieceElement.remove();
+        heldPieceElement = null;
+        heldPieceData = null;
+        pickupPiece(rows, cols);
+    }
+
+    function placePiece(index) {
+        const targetCell = puzzleBoard.querySelector(`.puzzle-cell[data-index='${index}']`);
+        if (targetCell && !targetCell.hasChildNodes()) {
+            const piece = new Image();
+            piece.src = heldPieceData.imgSrc;
+            piece.classList.add('placed-piece');
+            targetCell.appendChild(piece);
+
+            if(heldPieceElement) heldPieceElement.remove();
+            heldPieceElement = null;
+            heldPieceData = null;
+
+            checkWinCondition();
+        }
+    }
+
+    function moveHeldPiece(e) {
+        if (!heldPieceElement) return;
+        const touch = e.touches ? e.touches[0] : e;
+        heldPieceElement.style.left = `${touch.clientX}px`;
+        heldPieceElement.style.top = `${touch.clientY}px`;
+    }
+
+    function checkWinCondition() {
+        if (unplacedPieces.length === 0 && !heldPieceData) {
+            clearInterval(timerInterval);
+            const finalTimeInSeconds = Math.floor((Date.now() - startTime) / 1000);
+            finalTimeDisplay.textContent = formatTime(finalTimeInSeconds);
+            winModal.classList.remove('hidden');
+
+            const selectedButton = document.querySelector('#difficulty-selector button.selected');
+            if (selectedButton) {
+                updateLeaderboard(selectedButton.textContent, finalTimeInSeconds);
+            }
+        }
+    }
+
+    function updateLeaderboard(difficultyName, time) {
+        const key = `puzzle-leaderboard-${difficultyName.replace(/\s/g, '')}`; // 移除空白以確保key的有效性
+        const leaderboard = JSON.parse(localStorage.getItem('puzzleLeaderboard')) || {};
+        if (!leaderboard[key] || time < leaderboard[key]) {
+            leaderboard[key] = time;
+            localStorage.setItem('puzzleLeaderboard', JSON.stringify(leaderboard));
+            console.log(`新紀錄 - ${difficultyName}: ${time}s`);
+        }
+    }
+
     function createPuzzlePieces(rows, cols) {
+        unplacedPieces = []; // 重置陣列
         const pieceWidth = sourceImage.width / cols;
         const pieceHeight = sourceImage.height / rows;
-        let pieces = [];
 
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
@@ -120,56 +217,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 canvas.width = pieceWidth;
                 canvas.height = pieceHeight;
                 const context = canvas.getContext('2d');
-                context.drawImage(sourceImage, c * pieceWidth, r * pieceHeight, pieceWidth, pieceHeight, 0, 0, pieceWidth, pieceHeight);
-                const pieceImage = new Image();
-                pieceImage.src = canvas.toDataURL();
-                pieceImage.dataset.index = r * cols + c;
-                pieceImage.classList.add('puzzle-piece');
-                pieceImage.draggable = true;
-                pieceImage.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', e.target.dataset.index));
-                pieces.push(pieceImage);
+                context.drawImage(
+                    sourceImage,
+                    c * pieceWidth, r * pieceHeight, // source x, y
+                    pieceWidth, pieceHeight,         // source w, h
+                    0, 0, pieceWidth, pieceHeight    // destination x, y, w, h
+                );
+
+                unplacedPieces.push({
+                    index: r * cols + c,
+                    imgSrc: canvas.toDataURL(),
+                    width: pieceWidth,
+                    height: pieceHeight
+                });
             }
         }
 
-        pieces.sort(() => Math.random() - 0.5);
-        pieces.forEach(piece => piecesContainer.appendChild(piece));
-    }
-
-    function handleDrop(e, rows, cols) {
-        e.preventDefault();
-        const draggedPieceIndex = e.dataTransfer.getData('text/plain');
-        const targetCell = e.target.closest('.puzzle-cell');
-        if (targetCell && targetCell.dataset.index === draggedPieceIndex) {
-            const piece = document.querySelector(`.puzzle-piece[data-index='${draggedPieceIndex}']`);
-            if(piece) {
-                targetCell.innerHTML = ''; // 清空
-                targetCell.appendChild(piece);
-                piece.draggable = false;
-                piece.style.cursor = 'default';
-                checkWinCondition(rows, cols);
-            }
-        }
-    }
-
-    function checkWinCondition(rows, cols) {
-        const placedPieces = puzzleBoard.querySelectorAll('.puzzle-piece');
-        if (placedPieces.length === rows * cols) {
-            clearInterval(timerInterval);
-            const finalTimeInSeconds = Math.floor((Date.now() - startTime) / 1000);
-            finalTimeDisplay.textContent = formatTime(finalTimeInSeconds);
-            winModal.classList.remove('hidden');
-            updateLeaderboard(rows, cols, finalTimeInSeconds);
-        }
-    }
-
-    function updateLeaderboard(rows, cols, time) {
-        const key = `puzzle-${rows}x${cols}`;
-        const leaderboard = JSON.parse(localStorage.getItem('puzzleLeaderboard')) || {};
-        if (!leaderboard[key] || time < leaderboard[key]) {
-            leaderboard[key] = time;
-            localStorage.setItem('puzzleLeaderboard', JSON.stringify(leaderboard));
-            console.log(`新紀錄 - ${key}: ${time}s`);
-        }
+        // 打亂陣列
+        unplacedPieces.sort(() => Math.random() - 0.5);
+        console.log(`${unplacedPieces.length} 個拼圖塊已創建並儲存。`);
     }
 
     function formatTime(seconds) {
@@ -177,6 +243,4 @@ document.addEventListener('DOMContentLoaded', () => {
         const sec = (seconds % 60).toString().padStart(2, '0');
         return `${min}:${sec}`;
     }
-
-    referenceImageContainer.style.display = 'none';
 });
