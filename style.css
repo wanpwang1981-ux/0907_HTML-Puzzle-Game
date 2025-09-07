@@ -71,6 +71,7 @@ header {
     background-repeat: no-repeat;
     background-position: center;
     opacity: 0.2; /* 淡化背景 */
+    filter: grayscale(100%); /* 灰階效果 */
     z-index: 0;
 }
 
@@ -91,7 +92,8 @@ header {
     pointer-events: none; /* 讓它不干擾板塊的點擊事件 */
     z-index: 1000;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    transform: translate(15px, 15px); /* 將拼圖塊偏移，避免擋住滑鼠指標 */
+    transform: translate(-50%, -50%); /* 讓游標在拼圖塊中心 */
+    opacity: 0.7; /* 半透明以看清底下圖案 */
     border: 1px solid #000;
 }
 
