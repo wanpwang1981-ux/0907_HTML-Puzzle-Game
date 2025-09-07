@@ -69,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function resetGame() {
         puzzleBoard.innerHTML = '';
+        puzzleBoard.style.removeProperty('--bg-image'); // 清除舊的底圖
         // difficultySelector.innerHTML = ''; // 不應重設，以便重新開始遊戲
         timerDisplay.textContent = '00:00';
         unplacedPieces = [];

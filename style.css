@@ -91,7 +91,7 @@ header {
     pointer-events: none; /* 讓它不干擾板塊的點擊事件 */
     z-index: 1000;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    transform: translate(-50%, -50%); /* 讓游標在拼圖塊中心 */
+    transform: translate(15px, 15px); /* 將拼圖塊偏移，避免擋住滑鼠指標 */
     border: 1px solid #000;
 }
 
