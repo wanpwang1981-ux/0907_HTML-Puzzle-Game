@@ -24,7 +24,7 @@ header {
 }
 
 #puzzle-section {
-    width: 600px; /* JS可修改的預設寬度 */
+    /* The width is now controlled by the #puzzle-board child element */
     transition: width 0.3s ease-in-out;
 }
 
@@ -77,7 +77,7 @@ header {
     position: relative;
     display: grid;
     border: 2px solid #333;
-    width: 100%;
+    width: 600px; /* JS可修改的預設寬度 */
     background-color: #fff;
     cursor: pointer;
 }

@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setBoardSize(size) {
-        puzzleSection.style.width = `${size}px`;
+        puzzleBoard.style.width = `${size}px`;
         if (sourceImage) {
             const boardAspectRatio = sourceImage.width / sourceImage.height;
             puzzleBoard.style.height = `${puzzleBoard.clientWidth / boardAspectRatio}px`;
@@ -239,17 +239,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!heldPieceElement) return;
         if (e.touches) e.preventDefault();
         const touch = e.touches ? e.touches[0] : e;
-        heldPieceElement.style.left = `${touch.clientX}px`;
-        heldPieceElement.style.top = `${touch.clientY}px`;
 
-        // --- 新的、更可靠的懸停偵測邏輯 ---
+        // 使用 pageX/pageY 以處理頁面滾動
+        // heldPieceElement 的 position 是 absolute，相對於 document
+        heldPieceElement.style.left = `${touch.pageX}px`;
+        heldPieceElement.style.top = `${touch.pageY}px`;
+
+        // --- 懸停偵測邏輯 ---
         const rect = puzzleBoard.getBoundingClientRect();
+        const scrollX = window.scrollX || window.pageXOffset;
+        const scrollY = window.scrollY || window.pageYOffset;
+
         let hoveredIndex = -1;
-        if (touch.clientX >= rect.left && touch.clientX <= rect.right && touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
-            const gridCol = Math.floor(x / (rect.width / currentCols));
-            const gridRow = Math.floor(y / (rect.height / currentRows));
+        // 檢查游標是否在滾動後的拼圖板可見區域內
+        if (touch.pageX >= rect.left + scrollX && touch.pageX <= rect.right + scrollX && touch.pageY >= rect.top + scrollY && touch.pageY <= rect.bottom + scrollY) {
+            const x = touch.pageX - (rect.left + scrollX);
+            const y = touch.pageY - (rect.top + scrollY);
+
+            const gridCol = Math.floor(x / rect.width * currentCols);
+            const gridRow = Math.floor(y / rect.height * currentRows);
             hoveredIndex = gridRow * currentCols + gridCol;
         }
 
